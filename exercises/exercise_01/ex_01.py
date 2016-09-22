@@ -36,17 +36,21 @@ def getData(rawData):
         classList.append(rawData[i][colNum - 1])
     return [data, classList]
 
- 
-
-def chooseComponentsNumber(matrix):
-    matrix = np.matrix(matrix) * np.matrix(matrix).transpose() 
-    U,S,V = np.linalg.svd(matrix) 
+def chooseComponentsNumber(matrix, percent):
+    print "\n---- Choosing components number ----"
+    mat = np.matrix(matrix) * np.matrix(matrix).transpose() 
+    U,S,V = np.linalg.svd(mat) 
     #print U.shape, S.shape, V.shape
     s_sum_all = sum(S)
-    for i in range(len(S)):
-        if sum(S[0:i]) / s_sum_all >= 0.8 :
+    totalComponents = matrix.shape[1]
+    num = totalComponents
+    print "TotalComponents", totalComponents
+    for i in range(totalComponents):
+        if sum(S[0:i]) / s_sum_all >= percent :
             print "Nro components:",i ,"with variance =", sum(S[0:i]) / s_sum_all
+            num = i
             break
+    return num
 
 def meanNormalization(rawdata):
     for i in range(rawdata.shape[0]):
@@ -69,16 +73,15 @@ def getClassTrainTest(classList):
     print len(classListTrain), len(classListTest)
     return [classListTrain, classListTest]
 
-def applyPCA(data):
+def applyPCA(data, numComponents):
     print "\n---- Apply PCA ----"
-    pca = PCA(n_components=80)
-    pca.fit(data)
-    #print "params" ,  pca.get_params()
-    cov_mat = pca.get_covariance()
-    #print cov_mat.shape
-    #print(pca.explained_variance_ratio_)
-    print data.shape
-    return data  
+    #pca = PCA(n_components=numComponents)
+    pca = PCA(n_components=numComponents)
+    #pca.fit(data)
+    #cov_mat = pca.get_covariance()
+    pcaData = pca.fit_transform(data)
+    print pcaData.shape
+    return pcaData  
 
 def logisticRegression(data, classList):
     print "\n ---- Logistic Regression ----"
@@ -95,14 +98,19 @@ def main(argv=None):
     [classListTrain, classListTest] = getClassTrainTest(classList)
 
     #pcaData = applyPCA(data)
-    pcaData = applyPCA(data_train)
-    chooseComponentsNumber(data_train)
+    variance = 80
+    numComponents = chooseComponentsNumber(data_train, float(variance) / 100)
+    if numComponents == -1 : print "Invalid components number. Exit"; return
+    
+    pcaDataTrain = applyPCA(data_train, numComponents)
+    pcaDataTest = applyPCA(data_test, numComponents)
+
     logreg = logisticRegression(data_train, classListTrain)
     #logreg.predict(data_test)
     print "Logistic Regression score: ", logreg.score(data_test, classListTest)
 
-    logregPca = logisticRegression(pcaData, classListTrain)
-    print "PCA Logistic Regression score: ", logreg.score(data_test, classListTest)
+    logregPca = logisticRegression(pcaDataTrain, classListTrain)
+    print "PCA (",variance,"%) Logistic Regression score: ", logregPca.score(pcaDataTest, classListTest)
 
     #logreg.predict_log_proba(data_test)
     #logreg.predict_proba(data_test)

@@ -6,11 +6,7 @@ import numpy
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn import linear_model
-
-# X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
-# pca = PCA(n_components=2)
-# pca.fit(X)
-# PCA(copy=True, n_components=2, whiten=False)
+from sklearn.lda import LDA
 
 datFileName="data1.csv"
 dirPath=os.path.dirname(os.path.realpath(__file__))
@@ -21,11 +17,10 @@ data=[]
 def loadCsvData(fileName):
     raw_data = open(fileName, 'rb')
     rawData = pandas.read_csv(raw_data, delimiter=",", skiprows=1)
-    #print(rawData.shape)
     return rawData.values
 
 def getData(rawData):
-    print "\n---- Getting data ----"
+    print "\n---- Getting data from File ----"
     lineNum = rawData.shape[0]
     colNum = rawData.shape[1]
     print "lineNum:", lineNum
@@ -37,29 +32,24 @@ def getData(rawData):
     return [data, classList]
 
 def chooseComponentsNumber(matrix, percent):
-    print "\n---- Choosing components number ----"
+    print "\n---- PCA - Choose components number ----"
+    print "Variance :",  percent
     mat = np.matrix(matrix) * np.matrix(matrix).transpose() 
     U,S,V = np.linalg.svd(mat) 
     #print U.shape, S.shape, V.shape
     s_sum_all = sum(S)
     totalComponents = matrix.shape[1]
     num = totalComponents
-    print "TotalComponents", totalComponents
     for i in range(totalComponents):
         if sum(S[0:i]) / s_sum_all >= percent :
-            print "Nro components:",i ,"with variance =", sum(S[0:i]) / s_sum_all
+            print "PCA dimension:",i ,"with variance =", sum(S[0:i]) / s_sum_all
             num = i
             break
     return num
 
-def meanNormalization(rawdata):
-    for i in range(rawdata.shape[0]):
-        np.mean(data[i])
-    return data
-
 def getTrainAndTestData(data):
     print "\n---- Get Train and Test data ----"
-    data_train = data[0:200]
+    data_train = data[0:199]
     data_test = data[200:data.shape[0]]
 
     print "Data Train size:", data_train.shape 
@@ -68,7 +58,7 @@ def getTrainAndTestData(data):
 
 def getClassTrainTest(classList):
     print "\n---- Get Class Train and Test ----"
-    classListTrain=classList[0:200]
+    classListTrain=classList[0:199]
     classListTest=classList[200:len(classList)]
     print len(classListTrain), len(classListTest)
     return [classListTrain, classListTest]
@@ -77,8 +67,6 @@ def applyPCA(data, numComponents):
     print "\n---- Apply PCA ----"
     #pca = PCA(n_components=numComponents)
     pca = PCA(n_components=numComponents)
-    #pca.fit(data)
-    #cov_mat = pca.get_covariance()
     pcaData = pca.fit_transform(data)
     print pcaData.shape
     return pcaData  
@@ -89,6 +77,12 @@ def logisticRegression(data, classList):
     logreg.fit(data, classList) 
     return logreg
 
+def LDA_train(data, classList):
+    print "\n---- LDA -----"
+    clf = LDA()
+    clf.fit(data, classList)
+    return clf
+
 def main(argv=None):
     if argv is None:
         arv = sys.argv
@@ -97,23 +91,25 @@ def main(argv=None):
     [data_train, data_test] = getTrainAndTestData(data)
     [classListTrain, classListTest] = getClassTrainTest(classList)
 
-    #pcaData = applyPCA(data)
     variance = 80
     numComponents = chooseComponentsNumber(data_train, float(variance) / 100)
     if numComponents == -1 : print "Invalid components number. Exit"; return
     
-    pcaDataTrain = applyPCA(data_train, numComponents)
-    pcaDataTest = applyPCA(data_test, numComponents)
+    pcaData = applyPCA(data, numComponents)
+    print "For PCA data"
+    [pcaDataTrain, pcaDataTest] = getTrainAndTestData(pcaData)
 
     logreg = logisticRegression(data_train, classListTrain)
-    #logreg.predict(data_test)
     print "Logistic Regression score: ", logreg.score(data_test, classListTest)
 
     logregPca = logisticRegression(pcaDataTrain, classListTrain)
     print "PCA (",variance,"%) Logistic Regression score: ", logregPca.score(pcaDataTest, classListTest)
 
-    #logreg.predict_log_proba(data_test)
-    #logreg.predict_proba(data_test)
+    clf = LDA_train(data_train, classListTrain)
+    print "LDA score: ", clf.score(data_test, classListTest)
 
+    clfPca = LDA_train(pcaDataTrain, classListTrain)
+    print "PCA (",variance,"%) LDA score: ", clfPca.score(pcaDataTest, classListTest)
+    
 if __name__ == "__main__":
     sys.exit(main())

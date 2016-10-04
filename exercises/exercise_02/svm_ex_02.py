@@ -19,11 +19,11 @@ def loadCsvData(fileName):
     return rawData.values
 
 def getData(rawData):
-    print "\n---- Getting data from File ----"
+    #print "\n---- Getting data from File ----"
     lineNum = rawData.shape[0]
     colNum = rawData.shape[1]
-    print "lineNum:", lineNum
-    print "colNum:", colNum
+    #print "lineNum:", lineNum
+    #print "colNum:", colNum
 
     data = np.array(rawData[0:lineNum, 0:colNum-1])
     for i in range(lineNum):
@@ -31,35 +31,23 @@ def getData(rawData):
     return [data, np.array(classList) ]
 
 def getTrainAndTestData(data):
-    print "\n---- Get Train and Test data ----"
+    #print "\n---- Get Train and Test data ----"
     data_train = data[0:199]
     data_test = data[200:data.shape[0]]
 
-    print "Data Train size:", data_train.shape 
-    print "Data Test size:", data_test.shape
+    #print "Data Train size:", data_train.shape 
+    #print "Data Test size:", data_test.shape
     return [data_train, data_test]
 
 def getLabelsTrainTest(classList):
-    print "\n---- Get Class Train and Test ----"
+    #print "\n---- Get Class Train and Test ----"
     classListTrain=classList[0:199]
     classListTest=classList[200:len(classList)]
-    print len(classListTrain), len(classListTest)
+    #print len(classListTrain), len(classListTest)
     return [classListTrain, classListTest]
-
-# A validacao externa deve ser 5-fold estratificado.
-def externFolds(classList):
-    [data_train, data_test] = getTrainAndTestData(data)
-    [classListTrain, classListTest] = getClassTrainTest(classList)
-
-    skf = cross_validation.StratifiedKFold(classList, n_folds=5)
-    # modelo = fit(data_train, hmax)
-	# ac = acuracia(modelo, data_test)
-
 
 # In order to get hyperparameter
 def internFolds(data_train, data_test, labelsTrain, labelsTest):
-    
-    # MDOX =  fit (data_train, H)
     acxmax = 0
     c_max=0
     gamma_max=0
@@ -72,14 +60,7 @@ def internFolds(data_train, data_test, labelsTrain, labelsTest):
                 acxmax = accuracy
                 c_max = c
                 gamma_max = gamm
-	return [acxmax, c_max, gamma_max]
-    # ACX = ACX + acuracia(mdox, data_test)
-    # if acx > acxmax:
-    #    acmax = acx
-    #    hmax = h
-
-def nanda():
-    print 'nn'
+    return [acxmax, c_max, gamma_max]
 
 def main(argv=None):
     if argv is None:
@@ -96,32 +77,29 @@ def main(argv=None):
         new_data_test = data[test_index]
         new_labels_train = labels[train_index]
         new_labels_test = labels[test_index]
-        #print "len: " , len(new_data_train)
-        
+
+        acx = 0
         skf_intern = cross_validation.StratifiedKFold(new_labels_train, n_folds=3)
-        mean_acc = 0
         for intern_train_index, intern_test_index in skf_intern:
             intern_data_train = new_data_train[intern_train_index]	
             intern_data_test = new_data_train[intern_test_index]	
             intern_labels_train = new_labels_train[intern_train_index]	
             intern_labels_test = new_labels_train[intern_test_index]
-            print "len inter:", len(intern_data_train)	
-            [accuracy, c_final, gamma_final ] = internFolds(intern_data_train, intern_data_test, intern_labels_train, intern_labels_test)
-            mean_acc = mean_acc + accuracy
-            print("C and Gamma values with 3-fold:", c_final, gamma_final)
+            [accuracy, c, gamma] = internFolds(intern_data_train, intern_data_test, intern_labels_train, intern_labels_test)
+            if accuracy > acx:
+                acx = accuracy 
+                c_final = c
+                gamma_final = gamma
+        #print("acx", acx)        
+        print("Valor Hiperparametros (C=%s, Gamma=%s)" % (c_final, gamma_final) )
+        svm_model = SVM.SVC(C = c_final, gamma = gamma_final)
+        svm_model.fit(new_data_train, new_labels_train)
+        acc_5_fold = svm_model.score(new_data_test, new_labels_test)
+        final_accuracy = final_accuracy + acc_5_fold
 
-#        svm = SVM.SVC(C = c_final, gamma = gamma_final)
-#        svm.fit(data_train, labels_train)
-#        mean_acc = svm.score(data_test, labels_test)
-#        print("Final Accuracy:", final_accuracy)
-#        mean_acc = mean_acc / 3
-#        print("Mean accuracy with 3-fold:", mean_acc)
-        #print("C and Gamma values with 3-fold:", c_final, gamma_final)
-
-    svm = SVM.SVC(C = c_final, gamma = gamma_final)
-    svm.fit(data, labels)
-    final_accuracy = svm.score(data, labels)
-    print("Final Accuracy:", final_accuracy)
+    final_accuracy = final_accuracy / 5
+    print("Acuracia media:%s" % final_accuracy)
+    print("Valor final hiperparametros (C=%s, Gamma=%s)" % (c_final, gamma_final) )
 
 if __name__ == "__main__":
     sys.exit(main())

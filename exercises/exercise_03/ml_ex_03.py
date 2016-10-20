@@ -7,8 +7,10 @@ import math
 from sklearn import cross_validation
 from sklearn.cross_validation import StratifiedKFold
 from sklearn import svm as SVM
+import  scipy.stats as stats
 
 datFileName="secom.data"
+labelsFileName="secom_labels.data"
 #datFileName="../exercise_02/data1.csv"
 dirPath=os.path.dirname(os.path.realpath(__file__))
 classList=[]
@@ -27,6 +29,26 @@ def getData(rawData):
     for i in range(lineNum):
         classList.append(rawData[i][colNum - 1])
     return [data, np.array(classList) ]
+
+## Data preprocessing
+def data_preprocess(fileName):
+    rawdata = load_data(dirPath + "/" + fileName)
+    ## column mean
+    column_mean = stats.nanmean(rawdata, axis=0)
+    ## Nan values index
+    nan_indexes = np.where(np.isnan(rawdata))
+    ## Replace Nan values
+    rawdata[nan_indexes] = np.take(column_mean, nan_indexes[1])
+    ## Standarize each column individually
+    rawdata = (rawdata - np.mean(rawdata, axis=0)) / np.std(rawdata, axis=0)
+    rawdata = np.nan_to_num(rawdata)
+    return rawdata
+
+def getLabels(fileName):
+    labelData = load_data(dirPath + "/" + fileName)
+    labels = labelData[:,0].clip(min=0)
+    return np.array(labels)
+
 
 # In order to get hyperparameter
 def internFolds(data_train, data_test, labelsTrain, labelsTest):
@@ -84,33 +106,21 @@ def main(argv=None):
         arv = sys.argv
 
     ## Data pre-processing    
-    rawdata = load_data(dirPath + "/" + datFileName)
-    col_med = np.zeros(shape=(rawdata.shape[1],1))
-    for line in rawdata:
-        print "\n \n"
-        #col_med=0
-        for i in range(len(line)):
-            if math.isnan(float(line[i])):
-                line[i] = 0
-                print " ", str(float(line[i]))
-            else:
-                col_med[i] += float(line[i])
-                print str(float(line[i])), 
+    data = data_preprocess(datFileName)
+#    for line in data:
+#        print line
+    labels = getLabels(labelsFileName)
+    print labels
+    print "data shape:", data.shape
+    print "label shape:", labels.shape
 
-    for i in range(len(col_med)):
-        col_med[i] /= rawdata.shape[0]
 
-    print "col_med: ", col_med
-        #print "\n\n" + str(line) + "<:"
-
-    #[data, labels] = getData(rawdata)
-    print rawdata.shape
 
     ## kNN , PCA com 80% da variancia
 
 
     ## SVM RBF 
-    #svm_rbf(data, labels)
+    svm_rbf(data, labels)
 
 
 if __name__ == "__main__":

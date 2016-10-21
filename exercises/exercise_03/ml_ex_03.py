@@ -19,6 +19,7 @@ data=[]
 def load_data(fileName):
     raw_data = open(fileName, 'rb')
     rawData = pandas.read_csv(raw_data, delimiter=" ")
+    print "load_data", rawData.shape
     return rawData.values
 
 def getData(rawData):
@@ -42,7 +43,11 @@ def data_preprocess(fileName):
     ## Standarize each column individually
     rawdata = (rawdata - np.mean(rawdata, axis=0)) / np.std(rawdata, axis=0)
     rawdata = np.nan_to_num(rawdata)
-    return rawdata
+
+    np.savetxt("foo.csv", rawdata, delimiter=",")
+    csv_data = load_data("foo.csv")
+    return csv_data
+    #return np.array(csv_data)
 
 def getLabels(fileName):
     labelData = load_data(dirPath + "/" + fileName)
@@ -107,20 +112,17 @@ def main(argv=None):
 
     ## Data pre-processing    
     data = data_preprocess(datFileName)
-#    for line in data:
-#        print line
     labels = getLabels(labelsFileName)
-    print labels
+    labels = labels[:data.shape[0]]
+    
+    print "---------------" 
     print "data shape:", data.shape
     print "label shape:", labels.shape
 
-
-
     ## kNN , PCA com 80% da variancia
 
-
     ## SVM RBF 
-    svm_rbf(data, labels)
+    #svm_rbf(data, labels)
 
 
 if __name__ == "__main__":

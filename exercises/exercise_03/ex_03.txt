@@ -28,3 +28,60 @@ Detalhes R
 
 Considere usar os pacotes caret ou mlr para fazer os loops de validacao cruzada e usar os diferentes classificadores
 
+
+--- knn ---
+Acuracia:0.934742051776
+Valor final K (K=25)
+--- svm ---
+Acuracia:0.935221668083
+Valor final hiperparametros (C=0.03125, Gamma=3.0517578125e-05)
+--- neural ---
+Acuracia:0.896861404877
+Valor final parametros (Neurons=40)
+--- rf ---
+Acuracia:0.934742051776
+Valor final parametros (Feats=10, Trees=100)
+--- gbm ---
+Acuracia:0.934898397072
+Valor final parametros (Learn Rate=0.1, Trees=30)
+
+
+-----------------------------------------------------------------------------
+
+--- knn ---
+Acuracia:0.93359083412
+Valor final K (K=25)
+--- svm ---
+Acuracia:0.929117990669
+Valor final hiperparametros (C=0.03125, Gamma=3.0517578125e-05)
+--- neural ---
+Acuracia:0.795276569411
+Valor final parametros (Neurons=40)
+--- rf ---
+Acuracia:0.932953891445
+Valor final parametros (Feats=10, Trees=100)
+--- gbm ---
+Acuracia:0.843753375295
+Valor final parametros (Learn Rate=0.1, Trees=100)
+
+
+---------------------------------------------------------------------
+
+--- knn ---
+Acuracia:0.93359083412
+Valor final K (K=25)
+--- svm ---
+Acuracia:0.929117990669
+Valor final hiperparametros (C=0.03125, Gamma=3.0517578125e-05)
+--- neural ---
+Acuracia:0.797816161135
+Valor final parametros (Neurons=40)
+--- rf ---
+Acuracia:0.929765095103
+Valor final parametros (Feats=15, Trees=100)
+--- gbm ---
+Acuracia:0.845037435449
+Valor final parametros (Learn Rate=0.1, Trees=100)
+
+
+

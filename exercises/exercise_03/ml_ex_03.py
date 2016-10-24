@@ -6,6 +6,7 @@ import numpy as np
 import math
 from sklearn.model_selection import StratifiedKFold
 from sklearn import svm as SVM
+from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
@@ -50,6 +51,28 @@ def svm_intern_folds(data_train, data_test, labelsTrain, labelsTest):
                 c_max = c
                 gamma_max = gamm
     return [acxmax, c_max, gamma_max]
+
+
+def chooseComponentsNumber(matrix, percent):
+    print "\n---- PCA - Choose components number ----"
+    print "Variance :",  percent
+    mat = np.matrix(matrix) * np.matrix(matrix).transpose() 
+    U,S,V = np.linalg.svd(mat) 
+    #print U.shape, S.shape, V.shape
+    s_sum_all = sum(S)
+    totalComponents = matrix.shape[1]
+    num = totalComponents
+    for i in range(totalComponents):
+        if sum(S[0:i]) / s_sum_all >= percent :
+            print "PCA dimension:",i ,"with variance =", sum(S[0:i]) / s_sum_all
+            num = i
+            break
+    return num
+
+def applyPCA(data, numComponents):
+    pca = PCA(n_components=numComponents)
+    pcaData = pca.fit_transform(data)
+    return pcaData
 
 def knn_intern_folds(data_train, data_test, labels_train, labels_test):
     acxmax = 0
@@ -211,6 +234,12 @@ def print_results(alg, final_accuracy, params):
         print("Valor final parametros (Learn Rate=%s, Trees=%s)" % (params[0], params[1]))
 
 
+def PCA_for_knn(data):
+    variance = 80
+    numComponents = chooseComponentsNumber(data, float(variance) / 100)
+    if numComponents == -1 : print "Invalid components number. Exit"; return
+    return applyPCA(data, numComponents)
+
 def main(argv=None):
     if argv is None:
         arv = sys.argv
@@ -221,7 +250,8 @@ def main(argv=None):
     labels = np.array(list(labels[:data.shape[0]]))
 
     ## kNN , PCA com 80% da variancia
-    run_folds('knn', data, labels)
+    pcaData = PCA_for_knn(data)
+    run_folds('knn', pcaData, labels)
 
     ## SVM RBF 
     run_folds('svm', data, labels)

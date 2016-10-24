@@ -84,4 +84,26 @@ Acuracia:0.845037435449
 Valor final parametros (Learn Rate=0.1, Trees=100)
 
 
+---------------------------------------------------------------------------
+
+
+---- PCA - Choose components number ----
+Variance : 0.8
+PCA dimension: 90 with variance = 0.800134743613
+--- knn ---
+Acuracia:0.93359083412
+Valor final K (K=25)
+--- svm ---
+Acuracia:0.929117990669
+Valor final hiperparametros (C=0.03125, Gamma=3.0517578125e-05)
+--- neural ---
+Acuracia:0.790803647693
+Valor final parametros (Neurons=40)
+--- rf ---
+Acuracia:0.93359083412
+Valor final parametros (Feats=10, Trees=100)
+--- gbm ---
+Acuracia:0.848230340845
+Valor final parametros (Learn Rate=0.05, Trees=30)
+
 

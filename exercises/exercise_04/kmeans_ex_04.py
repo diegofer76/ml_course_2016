@@ -7,11 +7,12 @@ import math
 from sklearn.model_selection import StratifiedKFold
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn import metrics
 from sklearn.preprocessing import scale
 import matplotlib.pyplot as plt
 
 datFileName="cluster-data.csv"
-#labelsFileName="secom_labels.data"
+labelsFileName="cluster-data-class.csv"
 dirPath=os.path.dirname(os.path.realpath(__file__))
 classList=[]
 data=[]
@@ -31,241 +32,124 @@ def getData(rawData):
         classList.append(rawData[i][colNum - 1])
     return [data, np.array(classList) ]
 
-def getLabels(fileName):
+def get_labels(fileName):
     labelData = load_data(dirPath + "/" + fileName)
     labels = labelData[:,0].clip(min=0)
     return np.array(labels)
 
-def svm_intern_folds(data_train, data_test, labelsTrain, labelsTest):
-    acxmax = 0
-    c_max=0
-    gamma_max=0
-    for c in [2**(-5), 1, 2**(5), 2**(10)]:
-        for gamm in [2**(-15), 2**(-10), 2**(-5), 1, 2**5]:
-            svm = SVM.SVC(C = c, gamma = gamm)
-            svm.fit(data_train, labelsTrain)
-            accuracy = svm.score(data_test, labelsTest)
-            if accuracy > acxmax:
-                acxmax = accuracy
-                c_max = c
-                gamma_max = gamm
-    return [acxmax, c_max, gamma_max]
 
-def knn_intern_folds(data_train, data_test, labels_train, labels_test):
-    acxmax = 0
-    cores = 4
-    k_value = 0
-    for k in [1, 5, 11, 15, 21, 25]:
-        knn = KNeighborsClassifier(n_neighbors = k, n_jobs = cores)
-        knn.fit(data_train, labels_train)
-        accuracy = knn.score(data_test, labels_test)
-        if accuracy > acxmax:
-            acxmax = accuracy
-            k_value = k
-    return [acxmax, k]
+def bench_k_means_inter(estimator, name, data):
+    estimator.fit(data)
+    best_score = 0.0
+    best_metric = ''
+    scores = [metrics.silhouette_score(data, estimator.labels_,metric='euclidean', sample_size=5416),
+             metrics.calinski_harabaz_score(data, estimator.labels_)/10000 ]
+    print('% 9s   %.3f   %.3f'
+          % (name, scores[0], scores[1]))
 
-def neural_intern_folds(data_train, data_test, labels_train, labels_test):
-    # 10, 20, 30 e 40 neuronios na camada escondida.
-    acxmax = 0
-    cores = 4
-    n_value = 0
-    for n in [10, 20, 30, 40]:
-        clf = MLPClassifier(hidden_layer_sizes=(n,), solver='lbfgs')
-        clf.fit(data_train, labels_train)
-        accuracy = clf.score(data_test, labels_test)
-        if accuracy > acxmax:
-            acxmax = accuracy
-            n_value = n
-    return [acxmax, n]
+    if scores[0] > best_score:          
+        best_score = scores[0]
+        best_metric = "Silouette"
+    
+    if scores[1] > best_score:          
+        best_score = scores[1]
+        best_metric = "calinski"
 
-def rf_intern_folds(data_train, data_test, labels_train, labels_test):
-    # teste com mtry ou n_featrues = 10, 15, 20, 25 e ntrees = 100, 200, 300 e 400
-    acxmax = 0
-    n_feats = 0
-    n_trees = 0
-    for feat in [10, 15, 20, 25]:
-        for trees in [100, 200, 300, 400]:
-            clf = RandomForestClassifier (max_features = feat, n_estimators = trees)
-            clf.fit(data_train, labels_train)
-            accuracy = clf.score(data_test, labels_test)
-            #print "first acc:", accuracy
-            if accuracy > acxmax:
-                acxmax = accuracy
-                n_feats = feat
-                n_trees = trees
-    return [acxmax, n_feats, n_trees]
+    return [best_score, best_metric]
 
-def gbm_intern_folds(data_train, data_test, labels_train, labels_test):
-    ##  numero de arvores = 30, 70, e 100, com learning rate de 0.1 e 0.05, e profundidade da arvore=5.
-    acxmax = 0
-    n_learn_rate = 0
-    n_trees = 0
-    depth_tree = 5
-    for trees in [30, 70, 100]:
-        for learn_rate in [0.1, 0.05]:
-            clf = GradientBoostingClassifier (n_estimators = trees, learning_rate = learn_rate, max_depth = depth_tree)
-            clf.fit(data_train, labels_train)
-            accuracy = clf.score(data_test, labels_test)
-            #print "first acc:", accuracy
-            if accuracy > acxmax:
-                acxmax = accuracy
-                n_trees = trees
-                n_learn_rate = learn_rate
-    return [acxmax, n_learn_rate, n_trees]
+def bench_k_means_ext(estimator, name, data, labels):
+    estimator.fit(data) 
+    best_score = 0.0
+    best_metric = ''
+    scores = [metrics.homogeneity_score(labels, estimator.labels_),
+             metrics.v_measure_score(labels, estimator.labels_),
+             metrics.adjusted_rand_score(labels, estimator.labels_),
+             metrics.adjusted_mutual_info_score(labels,  estimator.labels_) ]
+    print('% 9s   %.3f   %.3f   %.3f   %.3f'
+          % (name, scores[0] , scores[1], scores[2], scores[3]) ) 
 
-## Data preprocessing
-def data_preprocess(fileName):
-    rawdata = load_data(dirPath + "/" + fileName)
-    ## column mean
-    column_mean = np.nanmean(np.array(rawdata), axis=0)
-    ## Nan values index
-    nan_indexes = np.where(np.isnan(rawdata))
-    ## Replace Nan values
-    rawdata[nan_indexes] = np.take(column_mean, nan_indexes[1])
-    ## Standarize each column individually
-    rawdata = (rawdata - np.mean(rawdata, axis=0)) / np.std(rawdata, axis=0)
-    rawdata = np.nan_to_num(rawdata)
-    return rawdata
+    if scores[0] > best_score:          
+        best_score = scores[0]
+        best_metric = "Homogeneity"
+    
+    if scores[1] > best_score:          
+        best_score = scores[1]
+        best_metric = "v_measure"
 
-def run_folds( alg, data, labels):
-    print "--- %s ---" % alg
-    final_accuracy = 0
-    params_final = [0.0, 0.0]
-    skf = StratifiedKFold(n_splits=5)
-    for train_index, test_index in skf.split(data, labels):
-        new_data_train = data[train_index]
-        new_data_test = data[test_index]
-        new_labels_train = labels[train_index]
-        new_labels_test = labels[test_index]
-        acx = 0
-        skf_intern = StratifiedKFold(n_splits=3)
-        for intern_train_index, intern_test_index in skf_intern.split(new_data_train, new_labels_train):
-            intern_data_train = new_data_train[intern_train_index]	
-            intern_data_test = new_data_train[intern_test_index]	
-            intern_labels_train = new_labels_train[intern_train_index]	
-            intern_labels_test = new_labels_train[intern_test_index]
-            params = get_intern_folds (alg, intern_data_train, intern_data_test, intern_labels_train, intern_labels_test)
-            if params[0] > acx:
-                acx = params[0]
-                params_final[0] = params[1]
-                if len(params) > 2:
-                    params_final[1] = params[2]
+    if scores[2] > best_score:          
+        best_score = scores[2]
+        best_metric = "adjusted_rand"
 
-        final_accuracy = final_accuracy + model_score(alg, params_final, 
-                                                      new_data_train, 
-                                                      new_labels_train, 
-                                                      new_data_test, 
-                                                      new_labels_test)
-    final_accuracy = final_accuracy / 5
-    print_results(alg, final_accuracy, params_final)
+    if scores[3] > best_score:          
+        best_score = scores[3]
+        best_metric = "adjusted_mutual"
 
-def model_score(alg, params, new_data_train, new_labels_train, new_data_test, new_labels_test):
-    if 'svm' == alg:
-        svm_model = SVM.SVC(C = params[0], gamma = params[1])
-        svm_model.fit(new_data_train, new_labels_train)
-        return svm_model.score(new_data_test, new_labels_test)
-    elif 'knn' == alg:
-        knn = KNeighborsClassifier(n_neighbors = params[0], n_jobs = 4)
-        knn.fit(new_data_train, new_labels_train)
-        return knn.score(new_data_test, new_labels_test)
-    elif 'neural' == alg:
-        clf = MLPClassifier(hidden_layer_sizes=(params[0],), solver='lbfgs')
-        clf.fit(new_data_train, new_labels_train)
-        return clf.score(new_data_test, new_labels_test)
-    elif 'rf' == alg:
-        clf = RandomForestClassifier (max_features = params[0], n_estimators = params[1])
-        clf.fit(new_data_train, new_labels_train)
-        return clf.score(new_data_test, new_labels_test)
-    elif 'gbm' == alg:
-        clf = GradientBoostingClassifier (learning_rate = params[0], n_estimators = params[1], max_depth = 5)
-        clf.fit(new_data_train, new_labels_train)
-        return clf.score(new_data_test, new_labels_test)
-
-def get_intern_folds (alg, data_train, data_test, labels_train, labels_test):
-    if 'svm' == alg:
-        return svm_intern_folds(data_train, data_test, labels_train, labels_test)
-    elif 'knn' == alg:
-        return knn_intern_folds(data_train, data_test, labels_train, labels_test)
-    elif 'neural' == alg:
-        return neural_intern_folds(data_train, data_test, labels_train, labels_test)
-    elif 'rf' == alg:
-        return rf_intern_folds(data_train, data_test, labels_train, labels_test)
-    elif 'gbm' == alg:
-        return gbm_intern_folds(data_train, data_test, labels_train, labels_test)
-
-def print_results(alg, final_accuracy, params):
-    if 'svm' == alg:
-        print("Acuracia:%s" % final_accuracy)
-        print("Valor final hiperparametros (C=%s, Gamma=%s)" % (params[0], params[1]) )
-    elif 'knn' == alg:
-        print("Acuracia:%s" % final_accuracy)
-        print("Valor final K (K=%s)" % (params[0]))
-    elif 'neural' == alg:
-        print("Acuracia:%s" % final_accuracy)
-        print("Valor final parametros (Neurons=%s)" % (params[0]) )
-    elif 'rf' == alg:
-        print("Acuracia:%s" % final_accuracy)
-        print("Valor final parametros (Feats=%s, Trees=%s)" % (params[0], params[1]) )
-    elif 'gbm' == alg:
-        print("Acuracia:%s" % final_accuracy)
-        print("Valor final parametros (Learn Rate=%s, Trees=%s)" % (params[0], params[1]))
-
+    return [best_score, best_metric]
 
 def main(argv=None):
     if argv is None:
         arv = sys.argv
 
-    ## Data pre-processing    
-    # data = data_preprocess(datFileName)
     data = load_data(datFileName)
-
+    labels = get_labels(labelsFileName)
     data = scale(data)
-#     print data.shape
-#     print data
-#     kmeans = KMeans(init='k-means++', n_clusters=3, n_init=10)
-#     kmeans.fit(data)
 
+    best_metric_int = ''
+    best_metric_ext = ''
+    range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-    reduced_data = PCA(n_components=2).fit_transform(data)
-    kmeans = KMeans(init='k-means++', n_clusters=3, n_init=10)
-    kmeans.fit(reduced_data)
+    print("--- Metricas Internas ---")
+    print('%9s   %s  %s' % ('K', 'Silhouette', 'Calinski'))
+    best_score = 0.0
+    best_metric = ''
+    best_k = 0
+    for n_clusters in range_n_clusters:
+        new_name = "k=" + str(n_clusters)
+        [last_best_score, last_best_metric] = bench_k_means_inter(KMeans(init='k-means++', n_clusters=n_clusters, n_init=5), name=new_name, data=data)
+        if last_best_score > best_score:
+            best_score = last_best_score
+            best_metric_int = last_best_metric
+            best_k = n_clusters
 
-    # Step size of the mesh. Decrease to increase the quality of the VQ.
-    h = .02     # point in the mesh [x_min, x_max]x[y_min, y_max].
+    print "best score: ", best_score
+    print "best metric intern: ", best_metric_int
+    print "best k:", best_k
 
-    # Plot the decision boundary. For that, we will assign a color to each
-    x_min, x_max = reduced_data[:, 0].min() - 1, reduced_data[:, 0].max() + 1
-    y_min, y_max = reduced_data[:, 1].min() - 1, reduced_data[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    best_score=0.0
+    print("")
+    print("--- Metricas Externas ---")
+    print('%9s   %s  %s %s  %s' % ('K', 'Homogen', 'v_meas', 'adj_rand', 'mutual'))
+    for n_clusters in range_n_clusters:
+        new_name = "k=" + str(n_clusters)
+        [last_best_score, last_best_metric] = bench_k_means_ext(KMeans(init='k-means++', n_clusters=n_clusters, n_init=5), name=new_name, data=data, labels=labels)
+        if last_best_score > best_score:
+            best_score = last_best_score
+            best_metric_ext = last_best_metric
+            best_k = n_clusters
 
-    # Obtain labels for each point in mesh. Use last trained model.
-    Z = kmeans.predict(np.c_[xx.ravel(), yy.ravel()])
+    print "best score: ", best_score
+    print "best metric extern: ", best_metric_ext
+    print "best k: ", best_k
 
-    # Put the result into a color plot
-    Z = Z.reshape(xx.shape)
-    plt.figure(1)
-    plt.clf()
-    plt.imshow(Z, interpolation='nearest',
-               extent=(xx.min(), xx.max(), yy.min(), yy.max()),
-               cmap=plt.cm.Paired,
-               aspect='auto', origin='lower')
+    final_score_int=[]   
+    final_score_ext=[]   
 
-    plt.plot(reduced_data[:, 0], reduced_data[:, 1], 'k.', markersize=2)
-    # Plot the centroids as a white X
-    centroids = kmeans.cluster_centers_
-    plt.scatter(centroids[:, 0], centroids[:, 1],
-                marker='x', s=169, linewidths=3,
-                color='w', zorder=10)
-    plt.title('K-means clustering on the digits dataset (PCA-reduced data)\n'
-              'Centroids are marked with white cross')
-    plt.xlim(x_min, x_max)
-    plt.ylim(y_min, y_max)
-    plt.xticks(())
-    plt.yticks(())
+    for n_clusters in range_n_clusters:
+        kmeans = KMeans(init='k-means++', n_clusters=n_clusters, n_init=5)
+        kmeans.fit(data)
+        final_score_int.append( metrics.silhouette_score(data, kmeans.labels_, metric='euclidean', sample_size=5416))
+        final_score_ext.append( metrics.homogeneity_score(labels, kmeans.labels_))
+
+    legen_int = 'Score Interna - ' + str(best_metric_int)
+    legen_ext = 'Score Externa - ' + str(best_metric_ext)
+
+    plt.plot(range_n_clusters, final_score_int, 'bs--', linewidth=4, markersize=10, label=legen_int)
+    plt.plot(range_n_clusters, final_score_ext, 'r^:', linewidth=4, markersize=10, label=legen_ext)
+    plt.xlabel('Numero de clusters (K)')
+    plt.ylabel('Scores')
+    plt.legend()
     plt.show()
 
-    ## kNN , PCA com 80% da variancia
-    #run_folds('knn', data, labels)
-    
 if __name__ == "__main__":
     sys.exit(main())
+    

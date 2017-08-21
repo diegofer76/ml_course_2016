@@ -1,1 +1,2 @@
-# ml_course_2016
+# This repository contains weekend projects
+ 

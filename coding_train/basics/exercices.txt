@@ -1,0 +1,44 @@
+
+
+Exercise 1: Program a formula
+
+a) Implementar un programa que calcule e imprima el valor final de la formula:
+
+y = 6x^2 + 3x + 2
+
+Para x=2.
+
+* example: CALCULATE_FUNC(x) { y = ... ; print y }
+
+-----------------------------------------------------------
+
+Exercise 2: Combine text and numbers in output
+
+Let y = x^2. 
+Hacer un programa que imprima literalmente: 'y(5) = 25'
+
+* hint: print 'y(' + value + ')' ...
+
+-------------------------------------------------------------
+
+Exercise 3: Program a while loop
+
+Tenemos una secuencia de numeros, x_n = n^2 + 1. 
+
+Osea:
+
+x_1 = 1^2 + 1 = 2
+x_2 = 2^2 + 1 = 5
+x_3 = 3^2 + 1 = 10
+...
+
+for integers n = 0, 1, 2, ... , N  ( osea n puede ser un numero entero(natural) )
+
+Hacer un programa que imprima (print) el valor de x_n, para n = 0,1,2 ... 30.
+(en realidad aqui lo que quiere decir es que vas a tener que imprimir varios valores, varias lineas, una linea para cada 'n' )
+
+
+1: Usando un loop 'for'
+2. Usando un loop 'while'
+
+

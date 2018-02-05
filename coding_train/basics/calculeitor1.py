@@ -15,9 +15,9 @@ def ejercicio3(n):
         x = i**2 + 1
         print "la respuesta " + str(i) + " es: " + str(x)
 
-def ejercicio4(i):
+def ejercicio4(n):
     i = 1
-    while i <= 30:
+    while i < n:
         x = i**2 + 1
         print "la respuesta " + str(i) + " es: " + str(x)
         i = i + 1
@@ -36,9 +36,9 @@ def main():
     ejercicio3(n)
 
     print "-----------ejercicio4------------"
-    i = 30
-    ejercicio4(i)
+    n = 31
+    ejercicio4(n)
 
 
-if __name__ == "__main__":
+if  __name__ == "__main__":
     sys.exit(main())

@@ -11,8 +11,9 @@ def ejercicio2(x):
     print "y( " + str(x) + " )" + " = " + str(y)
 
 def ejercicio3(n):
-    x = n**2 + 1
-    print "la respuesta " + str(n) + " es: " + str(x)
+    for i in range(1,n):
+        x = i**2 + 1
+        print "la respuesta " + str(i) + " es: " + str(x)
 
 def main():
     print "-----------ejercicio1------------"
@@ -22,10 +23,11 @@ def main():
     print "-----------ejercicio2------------"
     x = 5
     ejercicio2(x)
-    
+
     print "-----------ejercicio3------------"
-    for n in range(1,31):
-        ejercicio3(n)
+    n = 31
+    ejercicio3(n)
+
 
 
 if __name__ == "__main__":

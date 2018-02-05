@@ -15,6 +15,13 @@ def ejercicio3(n):
         x = i**2 + 1
         print "la respuesta " + str(i) + " es: " + str(x)
 
+def ejercicio4(i):
+    i = 1
+    while i <= 30:
+        x = i**2 + 1
+        print "la respuesta " + str(i) + " es: " + str(x)
+        i = i + 1
+
 def main():
     print "-----------ejercicio1------------"
     x = 2
@@ -28,6 +35,9 @@ def main():
     n = 31
     ejercicio3(n)
 
+    print "-----------ejercicio4------------"
+    i = 30
+    ejercicio4(i)
 
 
 if __name__ == "__main__":

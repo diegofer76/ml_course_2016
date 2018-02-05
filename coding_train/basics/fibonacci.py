@@ -21,7 +21,12 @@
 
 def fibonacci(n):
     print "secuencia fibonacci:"
+
     # implementar aqui
+    # Hint: almazena los valores de F_0 e F_1 en dos variables diferentes
+    # Hint: utiliza una tercera variable para almacenar la suma de los dos elementos anteriores.
+    # Hint: Usa un for para recorrer. O un while, el que mas te guste.
+
 
 
 def main():

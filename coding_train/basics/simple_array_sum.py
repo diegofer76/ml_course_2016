@@ -28,12 +28,12 @@
 
 #implementar aqui la suma de los elementos
 def simple_array_sum(arr):
+    global sum_value
     sum_value = 0
     # aqui abajo implementa la suma.
     # Hint: Usa un for para recorrer el array 'arr'
-    print sum_value
     for n in arr:
-        print sum_value
+        sum_value = sum_value + n
     return sum_value
 
 
@@ -44,8 +44,9 @@ def main():
     arr = [1, 2, 3, 4, 6]
     simple_array_sum(arr)
     # Llama la funcion que hace la suma
+    result = sum_value
+    print "la suma total es: " + str(result)
 
 
-if  __name__ == "__main __":
-    print "test"
+if  __name__ == "__main__":
     main()

@@ -31,7 +31,9 @@ def simple_array_sum(arr):
     sum_value = 0
     # aqui abajo implementa la suma.
     # Hint: Usa un for para recorrer el array 'arr'
-
+    print sum_value
+    for n in arr:
+        print sum_value
     return sum_value
 
 
@@ -40,11 +42,10 @@ def main():
     #arr = map(int, raw_input().strip().split(' '))
 
     arr = [1, 2, 3, 4, 6]
-
+    simple_array_sum(arr)
     # Llama la funcion que hace la suma
-    result = simple_array_sum(arr)
-    print "sum = ", result
 
 
-if __name__ == "__main__":
+if  __name__ == "__main __":
+    print "test"
     main()

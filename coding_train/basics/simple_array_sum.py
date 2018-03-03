@@ -35,6 +35,12 @@ def simple_array_sum(arr):
         sum_value = sum_value + n
     return sum_value
 
+def fiboarray(num):
+    fibo = [0,1]
+    for n in range(num):
+        fibo.append(fibo[n]+fibo[n+1])
+    return fibo
+
 
 def main():
     # Lee los elementos del array
@@ -45,6 +51,10 @@ def main():
     result = simple_array_sum(arr)
     print "la suma total es: " + str(result)
 
+    print "-------------ejercicicio  2 ---------------"
+    num = 10
+    listado = fiboarray(num)
+    print listado
 
 if  __name__ == "__main__":
     main()
